@@ -5,6 +5,7 @@ Download attachments from e-mail via IMAP and send them to a printer via FTP
 # Environment Variables
 | VARIABLE  | Description |
 | ------------- | ------------- |
+| PRINTER_IP | The IP address of the Printer's FTP server. Anonymous FTP authentication is used.  |
 | IMAP_SERVER_IP | The IP or hostname of the IMAP server  |
 | IMAP_USERNAME | The username the authentication with your IMAP server  |
 | IMAP_PASSWORD | The password the authentication with your IMAP server  |
