@@ -1,5 +1,7 @@
 # email2printerFTP
-Download attachments from e-mail via IMAP and send them to a printer via FTP
+- This service connects to an IMAP e-mail server and looks for e-mail that are unread/unseen.
+- All attachments will be downloaded, and e-mails will be marked as read/seen.
+- If attachment file extensions are in the `ALLOWED_FILE_TYPES` list, the service will upload the file to the `PRINTER_IP` FTP server.
 
 
 # Environment Variables
