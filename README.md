@@ -6,7 +6,7 @@
 # Inspiration
 I have a HP MFP 283fdw printer that allows you to use HPEPRINT to send e-mail to `<custom-adress>@hpeprint.com` which requires the document to be uploaded to the cloud. This service allows me to e-mail my self hosted e-mail server and have the HP printer pickup the job. 
 
-NOTE: By default, my HP printer had FTP printing disabled, and I needed to turn this on via a tickbox in the the printers webUI(https) under Networking > Configuration > Advanced
+NOTE: By default, my HP printer had "FTP Printing" disabled by default, and I needed to turn this on via a tickbox in the the printers webUI(https) under Networking > Configuration > Advanced
 
 # Environment Variables
 | VARIABLE  | Description |
