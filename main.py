@@ -89,7 +89,7 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
     fromEmailAddress = '@'.join(fromEmailAddress)
     #print("from domain",fromDomainName,"from email",fromEmailAddress)
     #print("E-mail is from",{mail["from"]})
-    if fromDomainName in allowedSenders or fromEmailAddress in allowedSenders:
+    if len(allowedSenders) != 0 and fromDomainName in allowedSenders or fromEmailAddress in allowedSenders:
         print(datetime.datetime.now(),"sender is authorized [",fromEmailAddress,"|",fromDomainName,"]")
         for part in mail.walk():
             filename = get_valid_filename(part.get_filename())
@@ -119,7 +119,8 @@ def downloadAllAttachmentsInInbox(server:str=IMAPserver, user:str=IMAPuser, pass
     m = connect(server, user, password)
     resp, items = m.search(None, "UnSeen")
     print(f"{datetime.datetime.now()} Checking e-mail account",IMAPuser)
-    print(datetime.datetime.now(),"Looking for file extensions that match:",','.join(allowedFileTypes))
+    print(datetime.datetime.now(),"ALLOWED_FILE_TYPES:",','.join(allowedFileTypes))
+    print(datetime.datetime.now(),"ALLOWED_SENDERS:",','.join(allowedSenders))
     
     items = items[0].split()
     print(datetime.datetime.now(),"Found",len(items),"e-mails")
