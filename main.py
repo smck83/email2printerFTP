@@ -32,7 +32,14 @@ if 'IMAP_USERNAME' in os.environ:
     IMAPuser = os.environ['IMAP_USERNAME']
 if 'IMAP_PASSWORD' in os.environ:  
     IMAPpassword = os.environ['IMAP_PASSWORD']
-
+if 'ALLOWED_SENDERS' in os.environ:  
+    allowedSenders = list(os.environ['ALLOWED_SENDERS'].split(' '))
+else:
+    allowedSenders = []
+if 'PRINT_ACTIVE' in os.environ:  # Allows you to run the container in test mode, i.e. do everything but actually print the file.
+    printActive = os.environ['PRINT_ACTIVE']
+else:
+    printActive = True
 
 if 'SCHEDULE' in os.environ:  
     recheckEveryXSeconds = int(os.environ['SCHEDULE'])
@@ -70,32 +77,52 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
     resp, data = m.fetch(emailid, "(BODY.PEEK[])")
     email_body = data[0][1]
     mail = email.message_from_bytes(email_body)
+    
     if mail.get_content_maintype() != 'multipart':
         return
-    print(mail.walk)
-    for part in mail.walk():
-        if part.get_content_maintype() != 'multipart' and part.get('Content-Disposition') is not None:
+    #print(email_body)
+    fromEmailAddress = re.search(r'<([A-z]|[0-9]|[_+-]){0,255}@([A-z]|[0-9]|[_+-]){0,255}\.([A-z]|[-]){0,10}>',str({mail["from"]}))
+    fromEmailAddress = fromEmailAddress.group().replace('<','').replace('>','')
+    #print("From Address:",fromEmailAddress)
+    fromEmailAddress = fromEmailAddress.split('@')
+    fromDomainName = fromEmailAddress[1]
+    fromEmailAddress = '@'.join(fromEmailAddress)
+    #print("from domain",fromDomainName,"from email",fromEmailAddress)
+    #print("E-mail is from",{mail["from"]})
+    if fromDomainName in allowedSenders or fromEmailAddress in allowedSenders:
+        print(datetime.datetime.now(),"sender is authorized [",fromEmailAddress,"|",fromDomainName,"]")
+        for part in mail.walk():
             filename = get_valid_filename(part.get_filename())
-            print("Attempting to print",filename)
-            outputfilepath = outputdir + '/' + get_valid_filename(part.get_filename())
-            open(outputfilepath, 'wb').write(part.get_payload(decode=True))
-            fileextension = list(filename.split('.'))
+            fileextension = filename.split('.')
             fileextension.reverse()
-            if  fileextension[0] in allowedFileTypes:
+            if part.get_content_maintype() != 'multipart' and part.get('Content-Disposition') is not None and fileextension[0] in allowedFileTypes:
+                #filename = get_valid_filename(part.get_filename())
+                print(datetime.datetime.now(),"Attempting to print",filename)
+                outputfilepath = outputdir + '/' + get_valid_filename(part.get_filename())
+                open(outputfilepath, 'wb').write(part.get_payload(decode=True))
+                #fileextension = list(filename.split('.'))
+                #fileextension.reverse()
+                
+            #if  fileextension[0] in allowedFileTypes:
                 print(datetime.datetime.now(),fileextension[0],"is an allowed filetype")
-                print(datetime.datetime.now(),"Printing",fileextension[0]," attachment from e-mail",outputfilepath,f"to printer IP: {printerIP}")
-                ftp_to_printer(outputfilepath)
-            else:
-                print(datetime.datetime.now(),fileextension[0],"is not an allowed filetype")
-    
+                print(datetime.datetime.now(),"Printing",fileextension[0]," attachment from e-mail:",fromEmailAddress,", stored at:",outputfilepath,f",to printer IP: {printerIP}")
+                if printActive == True:
+                    ftp_to_printer(outputfilepath)
+                else:
+                    print(datetime.datetime.now(),"This is where I would normally print",outputfilepath,", Currently: ACTIVE_PRINT!=True")
+            #else:
+            #    print(datetime.datetime.now(),filename,"is not an allowed filetype")
+    else:
+        print(datetime.datetime.now(),"sender is NOT authorized [",fromEmailAddress,"|",fromDomainName,"] : No further action will be taken.")
 # Download all the attachment files for all emails in the inbox.
 def downloadAllAttachmentsInInbox(server:str=IMAPserver, user:str=IMAPuser, password:str=IMAPpassword, outputdir:str=outputdir):
     m = connect(server, user, password)
     resp, items = m.search(None, "UnSeen")
     print(f"{datetime.datetime.now()} Checking e-mail account",IMAPuser)
+    print(datetime.datetime.now(),"Looking for file extensions that match:",','.join(allowedFileTypes))
     
     items = items[0].split()
-    print(len(items))
+    print(datetime.datetime.now(),"Found",len(items),"e-mails")
 
     for emailid in items:
         m.store(emailid, '+FLAGS', '(\\Seen)')  ## Mark the e-mail as read so it won't be printed again
