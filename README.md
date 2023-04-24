@@ -5,7 +5,7 @@
 - If `ACTIVE_PRINT` is not set to `False` the service will upload the file to the `PRINTER_IP` FTP server, to print.
 
 # Inspiration
-I have a HP MFP 283fdw printer that allows you to use HPEPRINT to send e-mail to `<custom-adress>@hpeprint.com` to print files easily and remotely, however this requires my document to be uploaded to the HPE cloud. This service allows me to e-mail my self hosted e-mail server and have the HP printer pickup the job over the FTP protocol. 
+I have an HP MFP 283fdw printer that allows you to use HPEPRINT to send e-mail to `<custom-adress>@hpeprint.com` to print files easily and remotely, however this requires my document to be uploaded to the HPE cloud. This service allows me to e-mail my self hosted e-mail server and have the HP printer pickup the job over the FTP protocol. 
 
 NOTE: My HP printer had "FTP Printing" disabled by default, and I needed to turn this on via a tickbox in the the printers webUI(https) under Networking > Configuration > Advanced
 
