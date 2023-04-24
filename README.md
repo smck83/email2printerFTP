@@ -9,7 +9,7 @@ I have an HP MFP 283fdw printer that allows you to use HPEPRINT to send e-mail t
 
 NOTE: My HP printer had "FTP Printing" disabled by default, and I needed to turn this on via a tickbox in the the printers webUI(https) under Networking > Configuration > Advanced
 
-`WARNING: The e-mail FROM: header can easily be spoofed unless DMARC is enforced on the domain name. You could also configured your IMAP server to only receive e-mail from PERMITTED SENDERS.`
+`WARNING: The e-mail FROM: header can easily be spoofed unless DMARC is enforced (p=reject) on the sending domain name. You could also configured your IMAP server to only receive e-mail from PERMITTED SENDERS or IP addresses.`
 
 # Environment Variables
 | VARIABLE  | Description |
