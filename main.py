@@ -25,7 +25,7 @@ if 'PRINTER_IP' in os.environ:
 if 'ALLOWED_FILE_TYPES' in os.environ:
     allowedFileTypes = (os.environ['ALLOWED_FILE_TYPES']).split(" ")
 else:
-    allowedFileTypes = ["pdf","docx","xlsx","doc","xls"]
+    allowedFileTypes = ["pdf"]
 if 'IMAP_SERVER_IP' in os.environ:  
     IMAPserver = os.environ['IMAP_SERVER_IP']
 if 'IMAP_USERNAME' in os.environ:  
