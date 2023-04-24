@@ -2,7 +2,7 @@
 - This service connects to an IMAP e-mail server and looks for e-mail that are unread/unseen in the Inbox
 - The sender address (domain and e-mail address) is checked against `ALLOWED_SENDERS`
 - All attachments with file extensions in `ALLOWED_FILE_TYPES` will be downloaded, and e-mails will be marked as read/seen.
-- If `ACTIVE_PRINT` is not set t `False` the service will upload the file to the `PRINTER_IP` FTP server.
+- If `ACTIVE_PRINT` is not set to `False` the service will upload the file to the `PRINTER_IP` FTP server, to print.
 
 # Inspiration
 I have a HP MFP 283fdw printer that allows you to use HPEPRINT to send e-mail to `<custom-adress>@hpeprint.com` to print files easily and remotely, however this requires my document to be uploaded to the HPE cloud. This service allows me to e-mail my self hosted e-mail server and have the HP printer pickup the job over the FTP protocol. 
