@@ -2,11 +2,10 @@
 Summary: This container allows you to create your own HPEPRINT solution, using your own e-mail server. Printer must support FTP print (disabled on HP by default)
 Maintainer : s@mck.la
 Description: This docker container will:
-1. Check an IMAP mailbox every 'SCHEDULE' seconds for unread/unseen e-mails in the \Inbox 
-2. Download their attachments, and mark the e-mail as read/seen
-3. Check if the file extension is in 'ALLOWED_FILE_TYPES' and if so, upload the file via FTP to the 'PRINTER_IP'
-
-
+1. Check an IMAP mailbox every 'SCHEDULE' seconds for unread/unseen e-mails in the \Inbox
+2. Check if the file extension is in 'ALLOWED_FILE_TYPES' and mark the e-mail as read/seen. 
+3 .If the file extension is in the 'ALLOWED_FILE_TYPES', download the attachment.
+4. Upload the file via FTP to the 'PRINTER_IP', to print.
 
 """
 
@@ -62,9 +61,9 @@ def ftp_to_printer(filename,printerIP:str=printerIP,user:str='anonymous',passwor
         print("error - could not connect to FTP server",printerIP)
         runTask = 0
     else:
-
+        print(datetime.datetime.now(),)
         file = open(filename,'rb')                  # file to send
-        session.storbinary('STOR print.txt', file)     # send the file
+        session.storbinary('STOR ' + filename, file)     # send the file
         file.close()                                    # close file and FTP
         session.quit()       
 
@@ -84,7 +83,6 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
     
     if mail.get_content_maintype() != 'multipart':
         return
-    #print(email_body)
     fromEmailAddress = re.search(r'<([A-z]|[0-9]|[_+-]){0,255}@([A-z]|[0-9]|[_+-]){0,255}\.([A-z]|[-]){0,10}>',str({mail["from"]}))
     fromEmailAddress = fromEmailAddress.group().replace('<','').replace('>','')
     #print("From Address:",fromEmailAddress)
@@ -96,10 +94,6 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
     if len(allowedSenders) != 0 and (fromDomainName in allowedSenders or fromEmailAddress in allowedSenders):
         print(datetime.datetime.now(),"sender is authorized [",fromEmailAddress,"|",fromDomainName,"]")
         for part in mail.walk():
-            #print(part.get_filename(),get_valid_filename(part.get_filename()))
-            #filename = get_valid_filename(part)
-
-            #print(filename,part.get_content_maintype(),part.get('Content-Disposition'),fileextension[0])
             if part.get_content_maintype() != 'multipart' and part.get('Content-Disposition') is not None:
                 filename, encoding = decode_header(part.get_filename())[0]
 
