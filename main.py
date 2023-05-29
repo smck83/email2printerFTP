@@ -114,7 +114,6 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
                     open(outputfilepath , 'wb').write(part.get_payload(decode=True))
                     print(datetime.datetime.now(),"Attempting to print",filename)
                     print(filename,part.get_content_maintype(),part.get('Content-Disposition'),fileextension[0])
-            #if  fileextension[0] in allowedFileTypes:
                     print(datetime.datetime.now(),fileextension[0],"is an allowed filetype")
                     print(datetime.datetime.now(),"Printing",fileextension[0]," attachment from e-mail:",fromEmailAddress,", stored at:",outputfilepath,f",to printer IP: {printerIP}")
                     if printActive == True:
@@ -139,7 +138,7 @@ def downloadAllAttachmentsInInbox(server:str=IMAPserver, user:str=IMAPuser, pass
     for emailid in items:
         m.store(emailid, '+FLAGS', '(\\Seen)')  ## Mark the e-mail as read so it won't be printed again
         downloaAttachmentsInEmail(m, emailid, outputdir)
-
+    m.logout
 while runTask == 1:
     downloadAllAttachmentsInInbox()
     print(f"{datetime.datetime.now()} Waiting {recheckEveryXSeconds} seconds")
