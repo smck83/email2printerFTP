@@ -17,6 +17,8 @@ import time
 import datetime
 import re
 import os
+from email.header import decode_header
+from email.message import EmailMessage
 
 outputdir="downloadedFiles"
 runTask = 1
@@ -46,9 +48,11 @@ if 'SCHEDULE' in os.environ:
 else:
     recheckEveryXSeconds = 60
 
-def get_valid_filename(s):
-    s = str(s).strip().replace(' ', '_')
-    return re.sub(r'(?u)[^-\w.]', '', s)
+def get_valid_filename(msg: EmailMessage):
+    filename = msg.get_filename()
+    #if decode_header(filename)[0][1] is not None:
+    #    filename = decode_header(filename)[0][0].decode(decode_header(filename)[0][1])
+    return filename
 
 def ftp_to_printer(filename,printerIP:str=printerIP,user:str='anonymous',password:str='user@home.com'):
     global runTask
@@ -89,27 +93,34 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
     fromEmailAddress = '@'.join(fromEmailAddress)
     #print("from domain",fromDomainName,"from email",fromEmailAddress)
     #print("E-mail is from",{mail["from"]})
-    if len(allowedSenders) != 0 and fromDomainName in allowedSenders or fromEmailAddress in allowedSenders:
+    if len(allowedSenders) != 0 and (fromDomainName in allowedSenders or fromEmailAddress in allowedSenders):
         print(datetime.datetime.now(),"sender is authorized [",fromEmailAddress,"|",fromDomainName,"]")
         for part in mail.walk():
-            filename = get_valid_filename(part.get_filename())
-            fileextension = filename.split('.')
-            fileextension.reverse()
-            if part.get_content_maintype() != 'multipart' and part.get('Content-Disposition') is not None and fileextension[0] in allowedFileTypes:
-                #filename = get_valid_filename(part.get_filename())
-                print(datetime.datetime.now(),"Attempting to print",filename)
-                outputfilepath = outputdir + '/' + get_valid_filename(part.get_filename())
-                open(outputfilepath, 'wb').write(part.get_payload(decode=True))
-                #fileextension = list(filename.split('.'))
-                #fileextension.reverse()
-                
+            #print(part.get_filename(),get_valid_filename(part.get_filename()))
+            #filename = get_valid_filename(part)
+
+            #print(filename,part.get_content_maintype(),part.get('Content-Disposition'),fileextension[0])
+            if part.get_content_maintype() != 'multipart' and part.get('Content-Disposition') is not None:
+                filename, encoding = decode_header(part.get_filename())[0]
+
+                if(encoding is not None):
+                    filename = filename.decode(encoding)
+
+                outputfilepath = outputdir + '/' + filename    
+                fileextension = filename.split('.')
+                fileextension.reverse()
+
+                if fileextension[0] in allowedFileTypes:
+                    open(outputfilepath , 'wb').write(part.get_payload(decode=True))
+                    print(datetime.datetime.now(),"Attempting to print",filename)
+                    print(filename,part.get_content_maintype(),part.get('Content-Disposition'),fileextension[0])
             #if  fileextension[0] in allowedFileTypes:
-                print(datetime.datetime.now(),fileextension[0],"is an allowed filetype")
-                print(datetime.datetime.now(),"Printing",fileextension[0]," attachment from e-mail:",fromEmailAddress,", stored at:",outputfilepath,f",to printer IP: {printerIP}")
-                if printActive == True:
-                    ftp_to_printer(outputfilepath)
-                else:
-                    print(datetime.datetime.now(),"This is where I would normally print",outputfilepath,", Currently: ACTIVE_PRINT!=True")
+                    print(datetime.datetime.now(),fileextension[0],"is an allowed filetype")
+                    print(datetime.datetime.now(),"Printing",fileextension[0]," attachment from e-mail:",fromEmailAddress,", stored at:",outputfilepath,f",to printer IP: {printerIP}")
+                    if printActive == True:
+                        ftp_to_printer(outputfilepath)
+                    else:
+                        print(datetime.datetime.now(),"This is where I would normally print",outputfilepath,", Currently: ACTIVE_PRINT!=True")
             #else:
             #    print(datetime.datetime.now(),filename,"is not an allowed filetype")
     else:
