@@ -1,4 +1,4 @@
-FROM pypy:3
+FROM python:3
 LABEL maintainer="s@mck.la"
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -11,5 +11,5 @@ WORKDIR /opt/email2printerftp/
 
 VOLUME ["/opt/email2printerftp"]
 
-ENTRYPOINT pypy -u /opt/email2printerftp/main.py
+ENTRYPOINT python -u /opt/email2printerftp/main.py
 
