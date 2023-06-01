@@ -16,6 +16,8 @@ import time
 import datetime
 import re
 import os
+import smtplib
+from email.message import EmailMessage
 from email.header import decode_header
 from email.message import EmailMessage
 
@@ -46,6 +48,45 @@ if 'SCHEDULE' in os.environ:
     recheckEveryXSeconds = int(os.environ['SCHEDULE'])
 else:
     recheckEveryXSeconds = 60
+if 'SMTP_SERVER' in os.environ:  
+    SMTPserver = os.environ['SMTP_SERVER']
+else:
+    SMTPserver = IMAPserver
+if 'SMTP_USERNAME' in os.environ:  
+    SMTPuser = os.environ['SMTP_USERNAME']
+else:
+    SMTPuser = IMAPuser
+if 'SMTP_PASSWORD' in os.environ:  
+    SMTPpassword  = os.environ['SMTP_PASSWORD']
+else:
+    SMTPpassword = IMAPpassword
+if 'SMTP_SENDER' in os.environ:  
+    SMTPsender  = os.environ['SMTP_SENDER']
+else:
+    SMTPsender = f"Print Update <{IMAPuser}>"
+
+def sendEmail(receivers,subject,emailbody):
+    msg = EmailMessage()
+    msg['Subject'] = f"Email2PrinterFtp - {subject}"
+    msg['From'] = SMTPsender
+    msg['To'] = [receivers]
+    msg.set_content(emailbody)
+
+    s = smtplib.SMTP(SMTPserver,25)
+    try:
+        s.connect(SMTPserver,587)
+        s.ehlo()
+        s.starttls()
+        s.ehlo()
+        s.login(SMTPuser, SMTPpassword)
+        s.send_message(msg)
+        print(datetime.datetime.now(),"Trying to send e-mail response")
+    except Exception as e:
+        s.quit()
+        print(datetime.datetime.now(),"Something went wrong:",e)
+    else:
+        print(datetime.datetime.now(),"Success! - E-mail response sent to ",receivers)
+        s.quit()
 
 def get_valid_filename(msg: EmailMessage):
     filename = msg.get_filename()
@@ -77,6 +118,10 @@ def connect(server, user, password):
 
 # Download all attachment files for a given email
 def downloaAttachmentsInEmail(m, emailid, outputdir):
+    printLog = {}
+    printLog["fail"] = []
+    printLog["success"] = []
+    printLog["info"] = []
     resp, data = m.fetch(emailid, "(BODY.PEEK[])")
     email_body = data[0][1]
     mail = email.message_from_bytes(email_body)
@@ -96,6 +141,7 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
         for part in mail.walk():
             if part.get_content_maintype() != 'multipart' and part.get('Content-Disposition') is not None:
                 filename, encoding = decode_header(part.get_filename())[0]
+                
 
                 if(encoding is not None):
                     filename = filename.decode(encoding)
@@ -114,10 +160,19 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
                         ftp_to_printer(outputfilepath)
                     else:
                         print(datetime.datetime.now(),"This is where I would normally print",outputfilepath,", Currently: ACTIVE_PRINT!=True")
+                    printLog["success"].append(f'File \"{filename}\" was downloaded and sent to the printer via FTP.')
+                    #sendEmail(fromEmailAddress,f'your file \"{filename}\" has been processed for printing',f'File \"{filename}\" was downloaded and sent to the printer via FTP.')
+                else:
+                    printLog["fail"].append(f'File \"{filename}\" is not supported, and was not processed.')
+                    #sendEmail(fromEmailAddress,f'your file \"{filename}\" is not supported',f'Files with extension type:{fileextension[0]} are not allowed to be processed.')
             #else:
             #    print(datetime.datetime.now(),filename,"is not an allowed filetype")
+        filesProcessed = len(printLog['fail'] + printLog['success'])
+        sendEmail(fromEmailAddress,f'Your print job - {filesProcessed} files received','\r\n'.join(printLog["success"]) + '\r\n\r\n' + '\r\n'.join(printLog["fail"]))
+
     else:
         print(datetime.datetime.now(),"sender is NOT authorized [",fromEmailAddress,"|",fromDomainName,"] : No further action will be taken.")
+        sendEmail(fromEmailAddress,f'Your e-mail address {fromEmailAddress} is not authorized',f'The e-mail sender {fromEmailAddress} is not authorized to send e-mails to this address.')
 # Download all the attachment files for all emails in the inbox.
 def downloadAllAttachmentsInInbox(server:str=IMAPserver, user:str=IMAPuser, password:str=IMAPpassword, outputdir:str=outputdir):
     m = connect(server, user, password)
