@@ -26,7 +26,7 @@ runTask = 1
 if 'PRINTER_IP' in os.environ:
     printerIP = os.environ['PRINTER_IP']
 if 'ALLOWED_FILE_TYPES' in os.environ:
-    allowedFileTypes = (os.environ['ALLOWED_FILE_TYPES']).split(" ")
+    allowedFileTypes = (os.environ['ALLOWED_FILE_TYPES']).lower().split(" ")
 else:
     allowedFileTypes = ["pdf"]
 if 'IMAP_SERVER_IP' in os.environ:  
@@ -40,7 +40,7 @@ if 'ALLOWED_SENDERS' in os.environ:
 else:
     allowedSenders = []
 if 'PRINT_ACTIVE' in os.environ:  # Allows you to run the container in test mode, i.e. do everything but actually print the file.
-    printActive = os.environ['PRINT_ACTIVE']
+    printActive = bool(os.environ['PRINT_ACTIVE'])
 else:
     printActive = True
 
@@ -98,11 +98,14 @@ def ftp_to_printer(filename,printerIP:str=printerIP,user:str='anonymous',passwor
     global runTask
     try:
         session = ftplib.FTP(printerIP,user,password)
-    except:
+    except Exception as e:
         print("error - could not connect to FTP server",printerIP)
-        runTask = 0
+        printLog["fail"].append(f"\n\nWARNING: FTP TO PRINTER[{printerIP}] {e}")
+        print(e)
+        #runTask = 0
     else:
         print(datetime.datetime.now(),)
+        printLog["success"].append(f"\n\nSUCCESS: FTP TO PRINTER[{printerIP}]")
         file = open(filename,'rb')                  # file to send
         session.storbinary('STOR ' + filename, file)     # send the file
         file.close()                                    # close file and FTP
@@ -121,7 +124,8 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
     printLog = {}
     printLog["fail"] = []
     printLog["success"] = []
-    printLog["info"] = []
+    printLog["info"] = []    
+
     resp, data = m.fetch(emailid, "(BODY.PEEK[])")
     email_body = data[0][1]
     mail = email.message_from_bytes(email_body)
@@ -150,7 +154,7 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
                 fileextension = filename.split('.')
                 fileextension.reverse()
 
-                if fileextension[0] in allowedFileTypes:
+                if fileextension[0].lower() in allowedFileTypes:
                     open(outputfilepath , 'wb').write(part.get_payload(decode=True))
                     print(datetime.datetime.now(),"Attempting to print",filename)
                     print(filename,part.get_content_maintype(),part.get('Content-Disposition'),fileextension[0])
@@ -189,6 +193,10 @@ def downloadAllAttachmentsInInbox(server:str=IMAPserver, user:str=IMAPuser, pass
         downloaAttachmentsInEmail(m, emailid, outputdir)
     m.logout
 while runTask == 1:
+    printLog = {}
+    printLog["fail"] = []
+    printLog["success"] = []
+    printLog["info"] = []
     downloadAllAttachmentsInInbox()
     print(f"{datetime.datetime.now()} Waiting {recheckEveryXSeconds} seconds")
     time.sleep(recheckEveryXSeconds)
