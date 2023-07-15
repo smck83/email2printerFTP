@@ -36,7 +36,7 @@ if 'IMAP_USERNAME' in os.environ:
 if 'IMAP_PASSWORD' in os.environ:  
     IMAPpassword = os.environ['IMAP_PASSWORD']
 if 'ALLOWED_SENDERS' in os.environ:  
-    allowedSenders = list(os.environ['ALLOWED_SENDERS'].split(' '))
+    allowedSenders = list(os.environ['ALLOWED_SENDERS'].lower().split(' '))
 else:
     allowedSenders = []
 if 'PRINT_ACTIVE' in os.environ:  # Allows you to run the container in test mode, i.e. do everything but actually print the file.
@@ -140,7 +140,7 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
     fromEmailAddress = '@'.join(fromEmailAddress)
     #print("from domain",fromDomainName,"from email",fromEmailAddress)
     #print("E-mail is from",{mail["from"]})
-    if len(allowedSenders) != 0 and (fromDomainName in allowedSenders or fromEmailAddress in allowedSenders):
+    if len(allowedSenders) != 0 and (fromDomainName.lower() in allowedSenders or fromEmailAddress.lower() in allowedSenders):
         print(datetime.datetime.now(),"sender is authorized [",fromEmailAddress,"|",fromDomainName,"]")
         for part in mail.walk():
             if part.get_content_maintype() != 'multipart' and part.get('Content-Disposition') is not None:
