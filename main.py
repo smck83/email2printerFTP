@@ -2,11 +2,10 @@
 Summary: This container allows you to create your own HPEPRINT solution, using your own e-mail server. Printer must support FTP print (disabled on HP by default)
 Maintainer : s@mck.la
 Description: This docker container will:
-1. Check an IMAP mailbox every 'SCHEDULE' seconds for unread/unseen e-mails in the \Inbox
+1. Check an IMAP mailbox every 'SCHEDULE' seconds for unread/unseen e-mails in the Inbox
 2. Check if the file extension is in 'ALLOWED_FILE_TYPES' and mark the e-mail as read/seen. 
 3 .If the file extension is in the 'ALLOWED_FILE_TYPES', download the attachment.
 4. Upload the file via FTP to the 'PRINTER_IP', to print.
-
 """
 
 import imaplib
@@ -132,7 +131,9 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
     
     if mail.get_content_maintype() != 'multipart':
         return
-    fromEmailAddress = re.search(r'<([A-z]|[0-9]|[_+-]){0,255}@([A-z]|[0-9]|[_+-]){0,255}\.([A-z]|[-]){0,10}>',str({mail["from"]}))
+    fromEmailAddress = re.search(r'<([A-z]|[0-9]|[._+-]){0,255}@([A-z]|[0-9]|[_+-]){0,255}\.([A-z]|[-.]){0,10}>',str({mail["from"]}))
+
+    # prior to 8th Feb - fromEmailAddress = re.search(r'<([A-z]|[0-9]|[_+-]){0,255}@([A-z]|[0-9]|[_+-]){0,255}\.([A-z]|[-]){0,10}>',str({mail["from"]}))
     fromEmailAddress = fromEmailAddress.group().replace('<','').replace('>','')
     #print("From Address:",fromEmailAddress)
     fromEmailAddress = fromEmailAddress.split('@')
