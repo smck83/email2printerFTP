@@ -16,6 +16,7 @@ import datetime
 import re
 import os
 import smtplib
+import requests
 from email.message import EmailMessage
 from email.header import decode_header
 from email.message import EmailMessage
@@ -32,6 +33,8 @@ if 'IMAP_SERVER_IP' in os.environ:
     IMAPserver = os.environ['IMAP_SERVER_IP']
 if 'IMAP_USERNAME' in os.environ:  
     IMAPuser = os.environ['IMAP_USERNAME']
+if 'GOTENBERG_API' in os.environ:  
+    GOTENBERGApi = os.environ['GOTENBERG_API']
 if 'IMAP_PASSWORD' in os.environ:  
     IMAPpassword = os.environ['IMAP_PASSWORD']
 if 'ALLOWED_SENDERS' in os.environ:  
@@ -118,6 +121,32 @@ def connect(server, user, password):
     
     return m
 
+def convertdocx2pdf(filename):
+
+    url = GOTENBERGApi + "/forms/libreoffice/convert"
+    
+
+    payload = {}
+    files = [
+        ('files', (filename, open(filename, 'rb'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
+    ]
+    headers = {}
+
+    response = requests.request("POST", url, headers=headers, data=payload, files=files)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Open a file in binary write mode
+        newfilename = f"{filename}.pdf"
+        with open(newfilename, 'wb') as f:
+            # Write the content of the response to the file
+            f.write(response.content)
+        print(f"PDF file saved successfully! {newfilename}")
+        return newfilename
+    else:
+        print("Error:", response.text)
+
+
 # Download all attachment files for a given email
 def downloaAttachmentsInEmail(m, emailid, outputdir):
     printLog = {}
@@ -156,7 +185,10 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
                 fileextension.reverse()
 
                 if fileextension[0].lower() in allowedFileTypes:
+                    # logic to send docx file to gotenberg for conversation to pdf before sending to printer
                     open(outputfilepath , 'wb').write(part.get_payload(decode=True))
+                    if fileextension[0].lower() == "docx" and isinstance(GOTENBERGApi,str):
+                        outputfilepath = convertdocx2pdf(outputfilepath)
                     print(datetime.datetime.now(),"Attempting to print",filename)
                     print(filename,part.get_content_maintype(),part.get('Content-Disposition'),fileextension[0])
                     print(datetime.datetime.now(),fileextension[0],"is an allowed filetype")
