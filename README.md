@@ -20,7 +20,7 @@ NOTE: My HP printer had "FTP Printing" disabled by default, and I needed to turn
 | IMAP_PASSWORD | `(REQUIRED)`The password the authentication with your IMAP server  |
 | ALLOWED_SENDERS | `(REQUIRED)` Space seperated e-mail addresses or domain names, `e.g. bgates@contoso.com gmail.com`  |
 | SCHEDULE | `(OPTIONAL)` The time (in seconds) between checking the e-mail account `Default: 60`  |
-| ALLOWED_FILE_TYPES | `(OPTIONAL)` Space seperated file extensions that will be sent to the printer `Default: pdf`  |
+| ALLOWED_FILE_TYPES | `(OPTIONAL)` Space seperated file extensions that will be sent to the printer `Default: pdf`. Supports `docx` with `GOTENBERG_API`  |
 | PRINT_ACTIVE | `(OPTIONAL)` This can be set to `False` for testing without actually printing, i.e. the file WILL NOT be sent to the printer `Default: True`  |
 | GOTENBERG_API | `(OPTIONAL)` Set the endpoint for Gotenberg `http://192.168.0.1:3000` i.e. https://gotenberg.dev/  |
 
