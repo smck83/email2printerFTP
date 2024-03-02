@@ -67,6 +67,7 @@ if 'SMTP_SENDER' in os.environ:
 else:
     SMTPsender = f"Print Update <{IMAPuser}>"
 
+gotenbergFileTypes = ["bib","doc","xml","docx","fodt","html","ltx","txt","odt","ott","pdb","psw","rtf","sdw","stw","sxw","uot","vor","wps","epub","png","bmp","emf","eps","fodg","gif","jpg","met","odd","otg","pbm","pct","pgm","ppm","ras","std","svg","svm","swf","sxd","sxw","tiff","xhtml","xpm","fodp","pages","potm","pot","pptx","pps","ppt","pwp","sda","sdd","sti","sxi","uop","wmf","csv","dbf","dif","fods","ods","ots","pxl","sdc","slk","stc","sxc","uos","xls","xlt","xlsx","tif","jpeg","odp","odg","dotx","xltx"]
 def sendEmail(receivers,subject,emailbody):
     msg = EmailMessage()
     msg['Subject'] = f"Email2PrinterFtp - {subject}"
@@ -128,7 +129,7 @@ def convertdocx2pdf(filename):
 
     payload = {}
     files = [
-        ('files', (filename, open(filename, 'rb'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
+        ('files', (filename, open(filename, 'rb')))
     ]
     headers = {}
 
@@ -144,7 +145,8 @@ def convertdocx2pdf(filename):
         print(f"PDF file saved successfully! {newfilename}")
         return newfilename
     else:
-        print("Error:", response.text)
+        print("Error converting document")
+        #printLog["fail"].append(f"{response.text}")
 
 
 # Download all attachment files for a given email
@@ -187,7 +189,7 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
                 if fileextension[0].lower() in allowedFileTypes:
                     # logic to send docx file to gotenberg for conversation to pdf before sending to printer
                     open(outputfilepath , 'wb').write(part.get_payload(decode=True))
-                    if fileextension[0].lower() == "docx" and isinstance(GOTENBERGApi,str):
+                    if fileextension[0].lower() in gotenbergFileTypes and isinstance(GOTENBERGApi,str):
                         outputfilepath = convertdocx2pdf(outputfilepath)
                     print(datetime.datetime.now(),"Attempting to print",filename)
                     print(filename,part.get_content_maintype(),part.get('Content-Disposition'),fileextension[0])
