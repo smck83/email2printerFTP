@@ -42,7 +42,7 @@ if 'ALLOWED_SENDERS' in os.environ:
 else:
     allowedSenders = []
 if 'PRINT_ACTIVE' in os.environ:  # Allows you to run the container in test mode, i.e. do everything but actually print the file.
-    printActive = bool(os.environ['PRINT_ACTIVE'])
+    printActive = os.environ['PRINT_ACTIVE']
 else:
     printActive = True
 
@@ -177,14 +177,17 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
         for part in mail.walk():
             if part.get_content_maintype() != 'multipart' and part.get('Content-Disposition') is not None:
                 filename, encoding = decode_header(part.get_filename())[0]
-                
-
+            
                 if(encoding is not None):
                     filename = filename.decode(encoding)
-
-                outputfilepath = outputdir + '/' + filename    
+                print("filename",filename)
                 fileextension = filename.split('.')
                 fileextension.reverse()
+                filename = str(abs(hash(filename))) + '.' + fileextension[0].lower()
+                #filename = filename[0:60].replace(" ","") + filename[-4:]
+                print("filename",filename)
+                outputfilepath = outputdir + '/' + filename    
+
 
                 if fileextension[0].lower() in allowedFileTypes:
                     # logic to send docx file to gotenberg for conversation to pdf before sending to printer
@@ -195,6 +198,7 @@ def downloaAttachmentsInEmail(m, emailid, outputdir):
                     print(filename,part.get_content_maintype(),part.get('Content-Disposition'),fileextension[0])
                     print(datetime.datetime.now(),fileextension[0],"is an allowed filetype")
                     print(datetime.datetime.now(),"Printing",fileextension[0]," attachment from e-mail:",fromEmailAddress,", stored at:",outputfilepath,f",to printer IP: {printerIP}")
+                    print("printActive",printActive)
                     if printActive == True:
                         ftp_to_printer(outputfilepath)
                     else:
@@ -219,7 +223,7 @@ def downloadAllAttachmentsInInbox(server:str=IMAPserver, user:str=IMAPuser, pass
     print(f"{datetime.datetime.now()} Checking e-mail account",IMAPuser)
     print(datetime.datetime.now(),"ALLOWED_FILE_TYPES:",','.join(allowedFileTypes))
     print(datetime.datetime.now(),"ALLOWED_SENDERS:",','.join(allowedSenders))
-    
+    print(datetime.datetime.now(),"Printing Active?",printActive)
     items = items[0].split()
     print(datetime.datetime.now(),"Found",len(items),"e-mails")
 
