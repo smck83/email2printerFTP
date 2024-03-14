@@ -19,7 +19,7 @@ import smtplib
 import requests
 from email.message import EmailMessage
 from email.header import decode_header
-from email.message import EmailMessage
+
 
 outputdir="downloadedFiles"
 runTask = 1
@@ -67,12 +67,15 @@ if 'SMTP_SENDER' in os.environ:
 else:
     SMTPsender = f"Print Update <{IMAPuser}>"
 
-gotenbergFileTypes = ["bib","doc","xml","docx","fodt","html","ltx","txt","odt","ott","pdb","psw","rtf","sdw","stw","sxw","uot","vor","wps","epub","png","bmp","emf","eps","fodg","gif","jpg","met","odd","otg","pbm","pct","pgm","ppm","ras","std","svg","svm","swf","sxd","sxw","tiff","xhtml","xpm","fodp","pages","potm","pot","pptx","pps","ppt","pwp","sda","sdd","sti","sxi","uop","wmf","csv","dbf","dif","fods","ods","ots","pxl","sdc","slk","stc","sxc","uos","xls","xlt","xlsx","tif","jpeg","odp","odg","dotx","xltx"]
+# leaving 'pdf' means gotenberg will normalize the pdf which appears to improve compatibility.
+gotenbergFileTypes = ["pdf","bib","doc","xml","docx","fodt","html","ltx","txt","odt","ott","pdb","psw","rtf","sdw","stw","sxw","uot","vor","wps","epub","png","bmp","emf","eps","fodg","gif","jpg","met","odd","otg","pbm","pct","pgm","ppm","ras","std","svg","svm","swf","sxd","sxw","tiff","xhtml","xpm","fodp","pages","potm","pot","pptx","pps","ppt","pwp","sda","sdd","sti","sxi","uop","wmf","csv","dbf","dif","fods","ods","ots","pxl","sdc","slk","stc","sxc","uos","xls","xlt","xlsx","tif","jpeg","odp","odg","dotx","xltx"]
 def sendEmail(receivers,subject,emailbody):
     msg = EmailMessage()
     msg['Subject'] = f"Email2PrinterFtp - {subject}"
     msg['From'] = SMTPsender
     msg['To'] = [receivers]
+    if 'BCC' in os.environ:
+        msg['Bcc'] = os.environ['BCC']
     msg.set_content(emailbody)
 
     s = smtplib.SMTP(SMTPserver,25)
