@@ -25,6 +25,10 @@ outputdir="downloadedFiles"
 runTask = 1
 if 'PRINTER_IP' in os.environ:
     printerIP = os.environ['PRINTER_IP']
+if 'PDF2PDF' in os.environ:
+    pdf2Pdf = os.environ['PDF2PDF']
+else:
+    pdf2Pdf = "False"
 if 'ALLOWED_FILE_TYPES' in os.environ:
     allowedFileTypes = (os.environ['ALLOWED_FILE_TYPES']).lower().split(" ")
 else:
@@ -67,8 +71,11 @@ if 'SMTP_SENDER' in os.environ:
 else:
     SMTPsender = f"Print Update <{IMAPuser}>"
 
-# leaving 'pdf' means gotenberg will normalize the pdf which appears to improve compatibility.
-gotenbergFileTypes = ["pdf","bib","doc","xml","docx","fodt","html","ltx","txt","odt","ott","pdb","psw","rtf","sdw","stw","sxw","uot","vor","wps","epub","png","bmp","emf","eps","fodg","gif","jpg","met","odd","otg","pbm","pct","pgm","ppm","ras","std","svg","svm","swf","sxd","sxw","tiff","xhtml","xpm","fodp","pages","potm","pot","pptx","pps","ppt","pwp","sda","sdd","sti","sxi","uop","wmf","csv","dbf","dif","fods","ods","ots","pxl","sdc","slk","stc","sxc","uos","xls","xlt","xlsx","tif","jpeg","odp","odg","dotx","xltx"]
+
+gotenbergFileTypes = ["bib","doc","xml","docx","fodt","html","ltx","txt","odt","ott","pdb","psw","rtf","sdw","stw","sxw","uot","vor","wps","epub","png","bmp","emf","eps","fodg","gif","jpg","met","odd","otg","pbm","pct","pgm","ppm","ras","std","svg","svm","swf","sxd","sxw","tiff","xhtml","xpm","fodp","pages","potm","pot","pptx","pps","ppt","pwp","sda","sdd","sti","sxi","uop","wmf","csv","dbf","dif","fods","ods","ots","pxl","sdc","slk","stc","sxc","uos","xls","xlt","xlsx","tif","jpeg","odp","odg","dotx","xltx"]
+if pdf2Pdf == "True":
+    gotenbergFileTypes.append("pdf") # Send pdf off for conversion - can normalize the pdf which appears to improve compatibility. Hit and miss.
+
 def sendEmail(receivers,subject,emailbody):
     msg = EmailMessage()
     msg['Subject'] = f"Email2PrinterFtp - {subject}"
